@@ -15,7 +15,7 @@ class UpdateJournalEntryRequest extends FormRequest
     public function rules()
     {
         // Mengambil Id dari route parameter
-        $journalEntryId = $this->route('journal_entry')->id;
+        $journalEntryId = $this->route('entry')->id;
 
         return [
             'number' => ['required', 'string', 'max:20', 'unique:journal_entries,number,' . $journalEntryId],
