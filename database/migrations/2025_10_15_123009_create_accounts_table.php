@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
             $table->string('name', 50);
-            $table->string('code', 12);
+            $table->string('code', 12)->unique();
             $table->enum('type', ['asset', 'liability', 'equity', 'revenue', 'expense']);
             $table->enum('balance_type', ['debit', 'credit']);
             $table->boolean('is_active')->default(true);

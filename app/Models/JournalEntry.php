@@ -59,7 +59,7 @@ class JournalEntry extends Model
     }
 
     /**
-     *   Total debit and credit amounts
+     * Total debit dan kredit
      */
     public function totals()
     {
@@ -74,22 +74,14 @@ class JournalEntry extends Model
 
 
     /**
-     * Menggunakan bcsub untuk mengurangin nilai dan menggunakan bccomp  untuk membandingan nilai dengan presisi tinggi
+     * Untuk mengecek apakah jurnal sudah seimbang menggunakan round
      */
     public function isBalanced(): bool
     {
-        $totals = $this->totals();
-
-
-        $difference = bcsub(
-            (string) $totals['debit'],
-            (string) $totals['credit'],
-            2
-        );
-
-
-        return bccomp($difference, '0.00', 2) === 0;
+        $total = $this->totals();
+        return round(((float)$total['debit'] - (float)$total['credit']), 2) === 0.0;
     }
+
 
     public function postJournalEntry()
     {

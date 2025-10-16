@@ -18,11 +18,11 @@ class UpdateJournalEntryRequest extends FormRequest
         $journalEntryId = $this->route('journal_entry')->id;
 
         return [
-            'number' => ['required', 'string', 'max:20', 'distinct', 'unique:journal_entries,number,' . $journalEntryId],
+            'number' => ['required', 'string', 'max:20', 'unique:journal_entries,number,' . $journalEntryId],
             'date' => ['required', 'date_format:Y-m-d'],
             'memo' => ['required', 'string'],
             'lines' => ['required', 'array', 'min:2'],
-            'lines.*.account_id' => ['required', 'exists:accounts,id'],
+            'lines.*.account_id' => ['required', 'exists:accounts,id', 'distinct'],
             'lines.*.position' => ['required', 'in:debit,credit'],
             'lines.*.amount' => ['required', 'numeric', 'min:0.01'],
             'lines.*.description' => ['nullable', 'string'],
