@@ -21,7 +21,8 @@ export interface JournalLine {
     account_id: number;
     position: LinePosition;
     amount: number | string;
-    memo: string;
+    description: string;
+    line_number?: number;
     created_at: string;
     updated_at: string;
 

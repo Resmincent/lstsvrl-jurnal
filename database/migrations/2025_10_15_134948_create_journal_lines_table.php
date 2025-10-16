@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('journal_entry_id')->constrained('journal_entries')->onDelete('cascade');
             $table->foreignId('account_id')->constrained('accounts')->restrictOnDelete();
             $table->enum('position', ['debit', 'credit']);
-            $table->unsignedDecimal('amount', 18, 2);
+            $table->decimal('amount', 18, 2);
             $table->text('description')->nullable();
             $table->unsignedSmallInteger('line_number')->default(1);
             $table->unique(['journal_entry_id', 'line_number']);

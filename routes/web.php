@@ -10,7 +10,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('dashboard');
 
     Route::resource('accounts', AccountController::class);
-    Route::resource('journal-entries', JournalEntryController::class)->except(['show']);
+    Route::resource('journal-entries', JournalEntryController::class)->except(['show'])->parameters(['journal-entries' => 'entry']);;
     Route::post('journal-entries/{entry}/post', [JournalEntryController::class, 'post'])->name('journal-entries.post');
 });
 require __DIR__ . '/settings.php';

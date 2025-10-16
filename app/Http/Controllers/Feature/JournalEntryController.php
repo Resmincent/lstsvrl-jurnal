@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Feature;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EntryJournals\StoreJournalEntryRequest;
 use App\Http\Requests\EntryJournals\UpdateJournalEntryRequest;
+use App\Models\Account;
 use App\Models\JournalEntry;
 use App\Models\JournalLine;
 use Illuminate\Http\Request;
@@ -47,8 +48,11 @@ class JournalEntryController extends Controller
 
     public function create()
     {
+        $accounts = Account::query()->active()->get(['id', 'name']);
+
         return Inertia::render('journal-entry/Create', [
             'entry' => new JournalEntry(),
+            'accounts' => $accounts,
         ]);
     }
 
@@ -94,14 +98,25 @@ class JournalEntryController extends Controller
 
     public function edit(JournalEntry $entry)
     {
-
         if ($resp = $this->jurnalIsPosted($entry)) {
             return $resp;
         }
+
+        $accounts = Account::query()->active()->get(['id', 'name']);
+
+        $entry->load([
+            'lines' => fn($q) => $q->orderBy('line_number'),
+            'lines.account:id,name',
+        ]);
+        // dd($entry->toArray());
+
+
         return Inertia::render('journal-entry/Edit', [
-            'entry' => $entry->load('lines.account'),
+            'entry' => $entry,
+            'accounts' => $accounts,
         ]);
     }
+
 
     public function update(UpdateJournalEntryRequest $updateJournalEntryRequest, JournalEntry $entry)
     {

@@ -4,14 +4,15 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import account from '@/routes/accounts';
 import { BreadcrumbItem } from '@/types';
 import { AccountFilters, AccountPagination } from '@/types/account';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import {
     createColumnHelper,
     FlexRender,
     getCoreRowModel,
     useVueTable,
 } from '@tanstack/vue-table';
-import { computed, h } from 'vue';
+import moment from 'moment';
+import { computed, h, reactive, watch } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -32,12 +33,65 @@ const items = computed(() =>
         type: item.type,
         balanceType: item.balance_type,
         isActive: item.is_active,
+        created_at: item.created_at || '-',
+        updated_at: item.updated_at || '-',
     })),
 );
+
+type AccountType = 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+
+const toLabel = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+const typeOptions = (
+    ['asset', 'liability', 'equity', 'revenue', 'expense'] as AccountType[]
+).map((v) => ({ value: v, label: toLabel(v) }));
+
+const activeOptions = [
+    { label: 'All', value: '' },
+    { label: 'Active', value: 'true' },
+    { label: 'Inactive', value: 'false' },
+];
+
+const filters = reactive<AccountFilters>({
+    type: props.filters?.type ?? undefined,
+    active:
+        typeof props.filters?.active === 'boolean'
+            ? String(props.filters.active)
+            : (props.filters?.active ?? ''),
+});
+
+const applyFilters = () => {
+    router.get(
+        account.index().url,
+        // hanya kirim key yang terisi agar URL bersih
+        {
+            ...(filters.type ? { type: filters.type } : {}),
+            ...(filters.active !== '' ? { active: filters.active } : {}),
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            only: ['accounts', 'filters'],
+        },
+    );
+};
+
+const resetFilters = () => {
+    filters.type = undefined;
+    filters.active = '';
+    applyFilters();
+};
+
+watch(() => [filters.type, filters.active], applyFilters);
 
 const columnHelper = createColumnHelper<any>();
 
 const columns = [
+    columnHelper.accessor('id', {
+        header: 'ID',
+        cell: (info) => info.getValue(),
+    }),
     columnHelper.accessor('name', {
         header: 'Name',
         cell: (info) => info.getValue(),
@@ -48,11 +102,29 @@ const columns = [
     }),
     columnHelper.accessor('balanceType', {
         header: 'Balance Type',
-        cell: (info) => info.getValue(),
+        cell: (info) => info.getValue() as string,
     }),
     columnHelper.accessor('isActive', {
         header: 'Active',
         cell: (info) => (info.getValue() ? 'Yes' : 'No'),
+    }),
+    columnHelper.accessor('created_at', {
+        header: 'Created',
+        cell: (info) => {
+            const value = info.getValue();
+            return value
+                ? moment(value).format('YYYY-MM-DD HH:mm') + ' WIB'
+                : '-';
+        },
+    }),
+    columnHelper.accessor('updated_at', {
+        header: 'Updated',
+        cell: (info) => {
+            const value = info.getValue();
+            return value
+                ? moment(value).format('YYYY-MM-DD HH:mm') + ' WIB'
+                : '-';
+        },
     }),
     columnHelper.display({
         id: 'actions',
@@ -67,6 +139,14 @@ const columns = [
                         class: 'text-cyan-400 hover:underline',
                     },
                     'Edit',
+                ),
+                h(
+                    'a',
+                    {
+                        href: account.show(id).url,
+                        class: 'text-cyan-700 hover:underline',
+                    },
+                    'View',
                 ),
                 h(
                     'button',
@@ -95,13 +175,59 @@ const tableData = useVueTable({
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="rounded-lg bg-white shadow-md">
             <div class="space-y-4 p-6">
-                <div class="flex items-center justify-between">
-                    <!-- <input
-                        v-model="search"
-                        type="text"
-                        placeholder="Search users..."
-                        class="h-10 w-64 rounded-md border px-3 py-2 text-black focus:ring focus:ring-cyan-200 focus:outline-none"
-                    /> -->
+                <div class="flex flex-wrap items-end justify-between gap-4">
+                    <div class="flex flex-wrap items-end gap-3">
+                        <!-- Type dropdown -->
+                        <div class="flex flex-col">
+                            <label
+                                class="mb-1 text-xs font-medium text-gray-600"
+                                >Type</label
+                            >
+                            <select
+                                v-model="filters.type"
+                                class="h-10 min-w-[180px] rounded border px-3 text-sm text-gray-700 focus:ring focus:ring-cyan-200 focus:outline-none"
+                            >
+                                <option :value="undefined">All</option>
+                                <option
+                                    v-for="opt in typeOptions"
+                                    :key="opt.value"
+                                    :value="opt.value"
+                                >
+                                    {{ opt.label }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Active dropdown -->
+                        <div class="flex flex-col">
+                            <label
+                                class="mb-1 text-xs font-medium text-gray-600"
+                                >Active</label
+                            >
+                            <select
+                                v-model="filters.active"
+                                class="h-10 min-w-[140px] rounded border px-3 text-sm text-gray-700 focus:ring focus:ring-cyan-200 focus:outline-none"
+                            >
+                                <option
+                                    v-for="opt in activeOptions"
+                                    :key="opt.label"
+                                    :value="opt.value"
+                                >
+                                    {{ opt.label }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Reset -->
+                        <button
+                            type="button"
+                            @click="resetFilters"
+                            class="h-10 rounded bg-gray-100 px-3 text-sm font-medium text-gray-800 hover:bg-gray-200"
+                            title="Reset filters"
+                        >
+                            Reset
+                        </button>
+                    </div>
 
                     <Link
                         :href="account.create().url"
@@ -140,7 +266,7 @@ const tableData = useVueTable({
                                     colspan="6"
                                     class="border-b px-4 py-8 text-center text-sm text-gray-500"
                                 >
-                                    No user data found
+                                    No account data found
                                 </td>
                             </tr>
                             <tr
@@ -151,7 +277,7 @@ const tableData = useVueTable({
                                 <td
                                     v-for="cell in row.getVisibleCells()"
                                     :key="cell.id"
-                                    class="border-b px-4 py-2 text-sm text-gray-600"
+                                    class="border-b px-4 py-2 text-sm text-gray-600 capitalize"
                                 >
                                     <component
                                         :is="FlexRender"

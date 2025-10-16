@@ -25,8 +25,8 @@ export interface Account {
 export interface AccountCreatePayload {
     code: string;
     name: string;
-    type: AccountType;
-    balance_type: BalanceType;
+    type: AccountType | '';
+    balance_type: BalanceType | '';
     is_active?: boolean;
 }
 
