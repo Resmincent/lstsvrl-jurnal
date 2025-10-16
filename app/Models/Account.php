@@ -32,12 +32,12 @@ class Account extends Model
      *   Scopes
      */
 
-    public function scopesActive($query)
+    public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    public function scopesByType($query, string $type)
+    public function scopeType($query, string $type)
     {
         return $query->where('type', $type);
     }

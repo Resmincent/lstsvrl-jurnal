@@ -18,7 +18,7 @@ class UpdateAccountRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:50'],
-            'code' => ['required', 'string', 'max:12', 'unique:accounts,code,' . $accountId],
+            'code' => ['sometimes', 'required', 'string', 'max:12', 'unique:accounts,code,' . $accountId],
             'type' => ['required', 'in:asset,liability,equity,revenue,expense'],
             'balance_type' => ['required', 'in:debit,credit'],
             'is_active' => ['boolean']
