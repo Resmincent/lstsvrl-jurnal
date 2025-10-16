@@ -25,7 +25,7 @@ class AccountController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('accounts/Index', [
+        return Inertia::render('account/Index', [
             'accounts' => $accounts,
             'filters' => $request->only(['type', 'active']),
         ]);
@@ -34,7 +34,7 @@ class AccountController extends Controller
     public function create()
     {
         return Inertia::render(
-            'accounts/Create',
+            'account/Create',
             [
                 'account' => new Account(),
             ]
@@ -62,7 +62,7 @@ class AccountController extends Controller
 
     public function edit(Account $account)
     {
-        return Inertia::render('accounts/Edit', [
+        return Inertia::render('account/Edit', [
             'account' => $account,
         ]);
     }

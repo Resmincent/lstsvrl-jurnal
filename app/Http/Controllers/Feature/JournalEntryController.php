@@ -38,7 +38,7 @@ class JournalEntryController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('journal-entries/Index', [
+        return Inertia::render('journal-entry/Index', [
             'entries' => $entries,
             'filters' => $request->only(['q', 'posted', 'start_date', 'end_date']),
 
@@ -47,7 +47,7 @@ class JournalEntryController extends Controller
 
     public function create()
     {
-        return Inertia::render('journal-entries/Create', [
+        return Inertia::render('journal-entry/Create', [
             'entry' => new JournalEntry(),
         ]);
     }
@@ -98,7 +98,7 @@ class JournalEntryController extends Controller
         if ($resp = $this->jurnalIsPosted($entry)) {
             return $resp;
         }
-        return Inertia::render('journal-entries/Edit', [
+        return Inertia::render('journal-entry/Edit', [
             'entry' => $entry->load('lines.account'),
         ]);
     }
