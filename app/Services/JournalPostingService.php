@@ -33,11 +33,15 @@ class JournalPostingService
                     ->value('running_balance') ?? '0.00';
 
                 $normalDebit = in_array($acc->type, ['asset', 'expense']);
+
+                // Mengurangi debit dan creadit
                 $delta = $normalDebit
                     ? bcsub($debit, $credit, 2)
                     : bcsub($credit, $debit, 2);
 
+                // Menambahkan
                 $newBalance = bcadd((string)$prev, (string)$delta, 2);
+
 
                 LedgerEntry::create([
                     'account_id' => $acc->id,

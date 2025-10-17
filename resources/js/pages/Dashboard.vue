@@ -2,77 +2,24 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
-import { reactive } from 'vue';
+import type { Summary } from '@/types/dashboard';
+import { Head } from '@inertiajs/vue3';
 
 const props = defineProps<{
-    summary: {
-        // akun utama
-        cash: string;
-        bank: string;
-        accounts_receivable: string;
-        equipment: string;
-
-        // agregat tipe
-        assets: string;
-        liabilities: string;
-        equity: string;
-
-        // kinerja
-        revenue: string;
-        expense: string;
-        net_income: string;
-
-        period_label?: string;
-    };
-    filters: {
-        start_date?: string | null;
-        end_date?: string | null;
-    };
+    summary: Summary;
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard().url },
 ];
 
-// ===== Filters (Apply/Reset) =====
-const filters = reactive({
-    start_date: props.filters?.start_date ?? '',
-    end_date: props.filters?.end_date ?? '',
-});
-
-const applyFilters = () => {
-    if (
-        filters.start_date &&
-        filters.end_date &&
-        filters.start_date > filters.end_date
-    ) {
-        const t = filters.start_date;
-        filters.start_date = filters.end_date;
-        filters.end_date = t;
-    }
-    router.get(
-        dashboard().url,
-        {
-            ...(filters.start_date ? { start_date: filters.start_date } : {}),
-            ...(filters.end_date ? { end_date: filters.end_date } : {}),
-        },
-        { preserveState: true, replace: true, only: ['summary', 'filters'] },
-    );
-};
-
-const resetFilters = () => {
-    filters.start_date = '';
-    filters.end_date = '';
-    applyFilters();
-};
-
-// ===== Utils =====
+// Format rupiah
 const cur = (n: string) =>
     Number(n || 0).toLocaleString('id-ID', {
         style: 'currency',
         currency: 'IDR',
     });
+
 const isPositive = (n: string) => Number(n || 0) >= 0;
 </script>
 
@@ -83,81 +30,19 @@ const isPositive = (n: string) => Number(n || 0) >= 0;
         <div
             class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
         >
-            <!-- Header & Filters -->
-            <div
-                class="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-[#0B1220]"
-            >
-                <div class="flex flex-wrap items-end gap-4">
-                    <div class="mr-auto">
-                        <div class="text-xs text-gray-500 dark:text-gray-400">
-                            Periode
-                        </div>
-                        <div
-                            class="text-lg font-semibold text-gray-900 dark:text-gray-100"
-                        >
-                            {{ props.summary.period_label || 'Semua periode' }}
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col">
-                        <label
-                            class="mb-1 text-xs font-medium text-gray-600 dark:text-gray-300"
-                            >Start</label
-                        >
-                        <input
-                            v-model="filters.start_date"
-                            type="date"
-                            class="h-10 rounded border px-3 text-sm text-gray-800 focus:ring focus:ring-cyan-200 focus:outline-none dark:border-gray-700 dark:bg-transparent dark:text-gray-100"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <label
-                            class="mb-1 text-xs font-medium text-gray-600 dark:text-gray-300"
-                            >End</label
-                        >
-                        <input
-                            v-model="filters.end_date"
-                            type="date"
-                            class="h-10 rounded border px-3 text-sm text-gray-800 focus:ring focus:ring-cyan-200 focus:outline-none dark:border-gray-700 dark:bg-transparent dark:text-gray-100"
-                        />
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <button
-                            type="button"
-                            @click="applyFilters"
-                            class="h-10 rounded bg-cyan-600 px-4 text-sm font-medium text-white hover:bg-cyan-700"
-                        >
-                            Apply
-                        </button>
-                        <button
-                            type="button"
-                            @click="resetFilters"
-                            class="h-10 rounded border px-4 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-[#0E1626]"
-                            title="Reset filters"
-                        >
-                            Reset
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Summary Cards -->
             <div class="grid auto-rows-min gap-4 md:grid-cols-5">
                 <!-- Cash -->
                 <div
-                    class="relative overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-[#0B1220]"
+                    class="relative overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border"
                 >
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                        Cash
-                    </div>
+                    <div class="text-xs text-black dark:text-black">Cash</div>
                     <div
-                        class="text-l mt-1 font-semibold text-gray-900 dark:text-gray-100"
+                        class="text-l mt-1 font-semibold text-black dark:text-black"
                     >
                         {{ cur(props.summary.cash) }}
                     </div>
                     <div
-                        class="mt-1 text-[10px] tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                        class="mt-1 text-[10px] tracking-wide text-black uppercase dark:text-black"
                     >
                         Saldo akhir
                     </div>
@@ -165,18 +50,16 @@ const isPositive = (n: string) => Number(n || 0) >= 0;
 
                 <!-- Bank -->
                 <div
-                    class="relative overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-[#0B1220]"
+                    class="relative overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border"
                 >
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                        Bank
-                    </div>
+                    <div class="text-xs text-black dark:text-black">Bank</div>
                     <div
-                        class="text-l mt-1 font-semibold text-gray-900 dark:text-gray-100"
+                        class="text-l mt-1 font-semibold text-black dark:text-black"
                     >
                         {{ cur(props.summary.bank) }}
                     </div>
                     <div
-                        class="mt-1 text-[10px] tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                        class="mt-1 text-[10px] tracking-wide text-black uppercase dark:text-black"
                     >
                         Saldo akhir
                     </div>
@@ -184,18 +67,18 @@ const isPositive = (n: string) => Number(n || 0) >= 0;
 
                 <!-- Accounts Receivable -->
                 <div
-                    class="relative overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-[#0B1220]"
+                    class="relative overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border"
                 >
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                    <div class="text-xs text-black dark:text-black">
                         Accounts Receivable
                     </div>
                     <div
-                        class="text-l mt-1 font-semibold text-gray-900 dark:text-gray-100"
+                        class="text-l mt-1 font-semibold text-black dark:text-black"
                     >
                         {{ cur(props.summary.accounts_receivable) }}
                     </div>
                     <div
-                        class="mt-1 text-[10px] tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                        class="mt-1 text-[10px] tracking-wide text-black uppercase dark:text-black"
                     >
                         Saldo akhir
                     </div>
@@ -203,18 +86,18 @@ const isPositive = (n: string) => Number(n || 0) >= 0;
 
                 <!-- Equipment -->
                 <div
-                    class="relative overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-[#0B1220]"
+                    class="relative overflow-hidden rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border"
                 >
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                    <div class="text-xs text-black dark:text-black">
                         Equipment
                     </div>
                     <div
-                        class="text-l mt-1 font-semibold text-gray-900 dark:text-gray-100"
+                        class="text-l mt-1 font-semibold text-black dark:text-black"
                     >
                         {{ cur(props.summary.equipment) }}
                     </div>
                     <div
-                        class="mt-1 text-[10px] tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                        class="mt-1 text-[10px] tracking-wide text-black uppercase dark:text-black"
                     >
                         Saldo akhir
                     </div>
@@ -265,81 +148,63 @@ const isPositive = (n: string) => Number(n || 0) >= 0;
             <!-- Aggregates -->
             <div class="grid auto-rows-min gap-4 md:grid-cols-3">
                 <div
-                    class="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-[#0B1220]"
+                    class="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border"
                 >
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                        Revenue (Periode)
+                    <div class="text-xs text-black dark:text-black">
+                        Revenue (All)
                     </div>
-                    <div
-                        class="text-l mt-1 font-semibold text-gray-900 dark:text-gray-100"
-                    >
+                    <div class="text-l bold mt-1 text-black">
                         {{ cur(props.summary.revenue) }}
                     </div>
                     <div
-                        class="mt-1 text-[10px] tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                        class="mt-1 text-[10px] tracking-wide text-gray-500 uppercase"
                     >
                         Akumulasi kredit
                     </div>
                 </div>
 
                 <div
-                    class="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-[#0B1220]"
+                    class="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border"
                 >
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                        Expense (Periode)
-                    </div>
-                    <div
-                        class="text-l mt-1 font-semibold text-gray-900 dark:text-gray-100"
-                    >
+                    <div class="text-xs text-gray-500">Expense (All)</div>
+                    <div class="text-l mt-1 font-semibold text-black">
                         {{ cur(props.summary.expense) }}
                     </div>
                     <div
-                        class="mt-1 text-[10px] tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                        class="mt-1 text-[10px] tracking-wide text-gray-500 uppercase"
                     >
                         Akumulasi debit
                     </div>
                 </div>
 
                 <div
-                    class="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-[#0B1220]"
+                    class="rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border"
                 >
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                    <div class="text-xs text-gray-500">
                         Assets / Liabilities / Equity
                     </div>
                     <div class="mt-2 grid grid-cols-3 gap-2 text-sm">
                         <div>
-                            <div
-                                class="text-[10px] text-gray-500 uppercase dark:text-gray-400"
-                            >
+                            <div class="text-[10px] text-gray-500 uppercase">
                                 Assets
                             </div>
-                            <div
-                                class="font-semibold text-gray-900 dark:text-gray-100"
-                            >
+                            <div class="font-semibold text-black">
                                 {{ cur(props.summary.assets) }}
                             </div>
                         </div>
                         <div>
-                            <div
-                                class="text-[10px] text-gray-500 uppercase dark:text-gray-400"
-                            >
+                            <div class="text-[10px] text-gray-500 uppercase">
                                 Liabilities
                             </div>
-                            <div
-                                class="font-semibold text-gray-900 dark:text-gray-100"
-                            >
+                            <div class="font-semibold text-black">
                                 {{ cur(props.summary.liabilities) }}
                             </div>
                         </div>
                         <div>
-                            <div
-                                class="text-[10px] text-gray-500 uppercase dark:text-gray-400"
-                            >
+                            <div class="text-[10px] text-gray-500 uppercase">
                                 Equity
                             </div>
-                            <div
-                                class="font-semibold text-gray-900 dark:text-gray-100"
-                            >
+                            <div class="font-semibold text-black">
                                 {{ cur(props.summary.equity) }}
                             </div>
                         </div>
@@ -347,21 +212,10 @@ const isPositive = (n: string) => Number(n || 0) >= 0;
                 </div>
             </div>
 
-            <!-- Detail ringkas -->
+            <!-- Ringkasan Akun -->
             <div
-                class="relative min-h-[40vh] flex-1 rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border dark:bg-[#0B1220]"
+                class="relative min-h-[40vh] flex-1 rounded-xl border border-sidebar-border/70 bg-white p-4 dark:border-sidebar-border"
             >
-                <div class="mb-3 flex items-center justify-between">
-                    <div
-                        class="text-sm font-semibold text-gray-900 dark:text-gray-100"
-                    >
-                        Ringkasan Akun Utama
-                    </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ props.summary.period_label || 'Semua periode' }}
-                    </div>
-                </div>
-
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead
@@ -377,83 +231,45 @@ const isPositive = (n: string) => Number(n || 0) >= 0;
                         </thead>
                         <tbody>
                             <tr class="border-b dark:border-gray-800">
-                                <td
-                                    class="px-3 py-2 text-gray-800 dark:text-gray-100"
-                                >
-                                    Cash
-                                </td>
-                                <td
-                                    class="px-3 py-2 text-right text-gray-900 dark:text-gray-100"
-                                >
+                                <td class="px-3 py-2 text-gray-800">Cash</td>
+                                <td class="px-3 py-2 text-right text-black">
                                     {{ cur(props.summary.cash) }}
                                 </td>
-                                <td
-                                    class="px-3 py-2 text-gray-600 dark:text-gray-300"
-                                >
+                                <td class="px-3 py-2 text-gray-600">
                                     Kas (111)
                                 </td>
                             </tr>
-
                             <tr class="border-b dark:border-gray-800">
-                                <td
-                                    class="px-3 py-2 text-gray-800 dark:text-gray-100"
-                                >
-                                    Bank
-                                </td>
-                                <td
-                                    class="px-3 py-2 text-right text-gray-900 dark:text-gray-100"
-                                >
+                                <td class="px-3 py-2 text-gray-800">Bank</td>
+                                <td class="px-3 py-2 text-right text-black">
                                     {{ cur(props.summary.bank) }}
                                 </td>
-                                <td
-                                    class="px-3 py-2 text-gray-600 dark:text-gray-300"
-                                >
+                                <td class="px-3 py-2 text-gray-600">
                                     Bank (112)
                                 </td>
                             </tr>
-
                             <tr class="border-b dark:border-gray-800">
-                                <td
-                                    class="px-3 py-2 text-gray-800 dark:text-gray-100"
-                                >
+                                <td class="px-3 py-2 text-gray-800">
                                     Accounts Receivable
                                 </td>
-                                <td
-                                    class="px-3 py-2 text-right text-gray-900 dark:text-gray-100"
-                                >
+                                <td class="px-3 py-2 text-right text-black">
                                     {{ cur(props.summary.accounts_receivable) }}
                                 </td>
-                                <td
-                                    class="px-3 py-2 text-gray-600 dark:text-gray-300"
-                                >
+                                <td class="px-3 py-2 text-gray-600">
                                     Piutang Usaha (113)
                                 </td>
                             </tr>
-
                             <tr class="border-b dark:border-gray-800">
-                                <td
-                                    class="px-3 py-2 text-gray-800 dark:text-gray-100"
-                                >
-                                    Equipment
-                                </td>
-                                <td
-                                    class="px-3 py-2 text-right text-gray-900 dark:text-gray-100"
-                                >
+                                <td class="px-3 py-2 text-black">Equipment</td>
+                                <td class="px-3 py-2 text-right text-black">
                                     {{ cur(props.summary.equipment) }}
                                 </td>
-                                <td
-                                    class="px-3 py-2 text-gray-600 dark:text-gray-300"
-                                >
+                                <td class="px-3 py-2 text-gray-600">
                                     Peralatan (114)
                                 </td>
                             </tr>
-
                             <tr>
-                                <td
-                                    class="px-3 py-2 text-gray-800 dark:text-gray-100"
-                                >
-                                    Net Income
-                                </td>
+                                <td class="px-3 py-2 text-black">Net Income</td>
                                 <td
                                     class="px-3 py-2 text-right font-medium"
                                     :class="
@@ -464,9 +280,7 @@ const isPositive = (n: string) => Number(n || 0) >= 0;
                                 >
                                     {{ cur(props.summary.net_income) }}
                                 </td>
-                                <td
-                                    class="px-3 py-2 text-gray-600 dark:text-gray-300"
-                                >
+                                <td class="px-3 py-2 text-gray-600">
                                     Selisih pendapatan dan beban (411–412 vs
                                     511–514)
                                 </td>

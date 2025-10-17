@@ -163,14 +163,24 @@ const columns = [
                           'Post',
                       )
                     : null,
+                !info.row.original.isPosted
+                    ? h(
+                          'button',
+                          {
+                              type: 'button',
+                              class: 'text-red-600 hover:text-red-800',
+                              onClick: () => deleteJournal(id),
+                          },
+                          'Delete',
+                      )
+                    : null,
                 h(
-                    'button',
+                    'a',
                     {
-                        type: 'button',
-                        class: 'text-red-600 hover:text-red-800',
-                        onClick: () => deleteJournal(id),
+                        href: journalEntry.show(id).url,
+                        class: 'text-cyan-800 hover:underline',
                     },
-                    'Delete',
+                    'View',
                 ),
             ]);
         },

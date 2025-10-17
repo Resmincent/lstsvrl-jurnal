@@ -166,6 +166,22 @@ class JournalEntryController extends Controller
         return redirect()->route('journal-entries.index')->with('success', "Jurnal entry {$entry->number} berhasil diupdate.");
     }
 
+
+    public function show(JournalEntry $entry)
+    {
+        $entry->load([
+            'lines' => fn($q) => $q->orderBy('line_number'),
+            'lines.account:id,code,name',
+        ]);
+
+        return Inertia::render('journal-entry/Detail', [
+            'entry'    => $entry,
+            'totals'   => $entry->totals(),
+            'balanced' => $entry->isBalanced(),
+        ]);
+    }
+
+
     public function destroy(JournalEntry $entry)
     {
         if ($resp = $this->jurnalIsPosted($entry)) {

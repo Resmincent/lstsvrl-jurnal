@@ -11,29 +11,23 @@ use Inertia\Inertia;
 
 class LedgerEntryController extends Controller
 {
-    public function index(Request $req)
+
+
+    public function index()
     {
-        // filter date
-        $start = $this->parseDateOrNull($req->get('start_date'));
-        $end   = $this->parseDateOrNull($req->get('end_date'));
-
-
-        // Scope periode reusable
-        $byPeriod = fn($q) => $q
-            ->when($start, fn($w) => $w->where('date', '>=', $start->toDateString()))
-            ->when($end,   fn($w) => $w->where('date', '<=', $end->toDateString()));
-
-        // ---- Helper saldo akun & tipe ----
+        // ---- Helper saldo akun & tipe (tanpa filter tanggal) ----
         $normalDebitTypes = ['asset', 'expense'];
 
-        $accountBalanceById = function (int $accountId) use ($byPeriod, $normalDebitTypes): string {
+        $accountBalanceById = function (int $accountId) use ($normalDebitTypes): string {
             $acc = Account::find($accountId);
             if (!$acc) return '0.00';
-            $q  = $byPeriod(LedgerEntry::where('account_id', $acc->id));
+
+            $q  = LedgerEntry::where('account_id', $acc->id);
             $dr = (string) $q->clone()->sum('debit');
             $cr = (string) $q->clone()->sum('credit');
+
             $normalDebit = in_array($acc->type, $normalDebitTypes, true);
-            // saldo bernilai positif dalam sisi normal akun tsb.
+            // saldo positif di sisi normal akun
             return $normalDebit ? bcsub($dr, $cr, 2) : bcsub($cr, $dr, 2);
         };
 
@@ -42,82 +36,41 @@ class LedgerEntryController extends Controller
             return $acc ? $accountBalanceById($acc->id) : '0.00';
         };
 
-        $typeBalance = function (string $type) use ($byPeriod, $normalDebitTypes): string {
-            $q = $byPeriod(
-                LedgerEntry::whereHas('account', fn($a) => $a->where('type', $type))
-            );
+        $typeBalance = function (string $type) use ($normalDebitTypes): string {
+            $q = LedgerEntry::whereHas('account', fn($a) => $a->where('type', $type));
             $sumDr = (string) $q->clone()->sum('debit');
             $sumCr = (string) $q->clone()->sum('credit');
             $normalDebit = in_array($type, $normalDebitTypes, true);
             return $normalDebit ? bcsub($sumDr, $sumCr, 2) : bcsub($sumCr, $sumDr, 2);
         };
 
-        // ---- Ambil saldo akun yang penting ----
+        // Saldo akun utama
         $cash      = $accountBalanceByCode('111'); // Kas
         $bank      = $accountBalanceByCode('112'); // Bank
         $ar        = $accountBalanceByCode('113'); // Piutang Usaha
         $equipment = $accountBalanceByCode('114'); // Peralatan
 
-
-        $assets     = $typeBalance('asset');
+        // Agregat per tipe
+        $assets      = $typeBalance('asset');
         $liabilities = $typeBalance('liability');
-        $equity     = $typeBalance('equity');
-        $revenue    = $typeBalance('revenue');
-        $expense    = $typeBalance('expense');
-        $netIncome  = bcsub($revenue, $expense, 2);
-
-
-        // 6) Label periode untuk UI
-        $periodLabel = $this->formatPeriodLabel($start, $end);
+        $equity      = $typeBalance('equity');
+        $revenue     = $typeBalance('revenue');
+        $expense     = $typeBalance('expense');
+        $netIncome   = bcsub($revenue, $expense, 2);
 
         return Inertia::render('Dashboard', [
             'summary' => [
-                // akun utama
-                'cash'        => $cash,
-                'bank'        => $bank,
-                'accounts_receivable' => $ar,
-                'equipment'   => $equipment,
-
-                // agregat tipe
-                'assets'      => $assets,
-                'liabilities' => $liabilities,
-                'equity'      => $equity,
-
-                // kinerja
-                'revenue'     => $revenue,
-                'expense'     => $expense,
-                'net_income'  => $netIncome,
-
-                'period_label' => $periodLabel,
-            ],
-            'filters' => [
-                'start_date' => $start?->toDateString(),
-                'end_date'   => $end?->toDateString(),
+                'cash'                 => $cash,
+                'bank'                 => $bank,
+                'accounts_receivable'  => $ar,
+                'equipment'            => $equipment,
+                'assets'               => $assets,
+                'liabilities'          => $liabilities,
+                'equity'               => $equity,
+                'revenue'              => $revenue,
+                'expense'              => $expense,
+                'net_income'           => $netIncome,
             ],
         ]);
-    }
-
-    /** Parsing date atau */
-    private function parseDateOrNull(?string $date): ?Carbon
-    {
-        if (!$date) return null;
-        try {
-            return Carbon::parse($date)->startOfDay();
-        } catch (\Throwable $e) {
-            return null;
-        }
-    }
-
-    /** Buat label periode */
-    private function formatPeriodLabel(?Carbon $start, ?Carbon $end): string
-    {
-        if ($start && $end) {
-            return $start->isSameDay($end)
-                ? $start->isoFormat('D MMMM YYYY')
-                : $start->isoFormat('D MMM YYYY') . ' – ' . $end->isoFormat('D MMM YYYY');
-        }
-        if ($start && !$end)  return 'Sejak ' . $start->isoFormat('D MMM YYYY');
-        if (!$start && $end)  return 'Hingga ' . $end->isoFormat('D MMM YYYY');
-        return 'Semua periode';
     }
 }

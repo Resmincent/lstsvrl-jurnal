@@ -11,7 +11,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::resource('accounts', AccountController::class);
-    Route::resource('journal-entries', JournalEntryController::class)->except(['show'])->parameters(['journal-entries' => 'entry']);;
+    Route::resource('journal-entries', JournalEntryController::class)->parameters(['journal-entries' => 'entry']);;
     Route::post('journal-entries/{entry}/post', [JournalEntryController::class, 'post'])
         ->name('journal-entries.post');
 });
