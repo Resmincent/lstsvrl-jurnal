@@ -22,7 +22,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const props = defineProps<{
     accounts: Account[];
-    number?: string;
+    number: string;
     defaultDate?: string;
 }>();
 
@@ -127,10 +127,11 @@ const submit = () => {
                                 >Number</label
                             >
                             <input
+                                disabled
                                 v-model="form.number"
                                 type="text"
                                 class="w-full rounded-md border px-3 py-2 text-black focus:border-cyan-500 focus:ring focus:ring-cyan-200"
-                                placeholder="e.g. JRN-2025-0001"
+                                placeholder="e.g. JRN202501010001"
                             />
                             <div
                                 v-if="form.errors.number"
@@ -249,7 +250,7 @@ const submit = () => {
                                                 :key="a.id"
                                                 :value="a.id"
                                             >
-                                                {{ a.name }}
+                                                {{ a.name }} - {{ a.code }}
                                             </option>
                                         </select>
                                         <div

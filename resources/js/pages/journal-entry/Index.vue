@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ModalDelete from '@/components/ModalDelete.vue';
+import ModalPost from '@/components/ModalPost.vue';
 import Pagination from '@/components/Pagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import journalEntry from '@/routes/journal-entries';
@@ -15,7 +17,7 @@ import {
     useVueTable,
 } from '@tanstack/vue-table';
 import moment from 'moment';
-import { computed, h, reactive, watch } from 'vue';
+import { computed, h, reactive, ref, watch } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Journal Entry', href: journalEntry.index().url },
@@ -37,6 +39,9 @@ const items = computed(() =>
         updated_at: e.updated_at || '-',
     })),
 );
+
+const modalPost = ref<InstanceType<typeof ModalPost> | null>(null);
+const modalDelete = ref<InstanceType<typeof ModalDelete> | null>(null);
 
 const toBoolString = (v: boolean | string | undefined) =>
     typeof v === 'boolean' ? String(v) : (v ?? '');
@@ -102,7 +107,16 @@ const columns = [
     }),
     columnHelper.accessor('isPosted', {
         header: 'Posted',
-        cell: (info) => (info.getValue() ? 'Yes' : 'No'),
+        cell: (info) =>
+            h(
+                'span',
+                {
+                    class: info.getValue()
+                        ? 'rounded px-2 py-0.5 text-xs bg-green-100 text-green-700'
+                        : 'rounded px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700',
+                },
+                info.getValue() ? 'Posted' : 'Unposted',
+            ),
     }),
     columnHelper.accessor('created_at', {
         header: 'Created',
@@ -127,49 +141,34 @@ const columns = [
         header: 'Actions',
         cell: (info) => {
             const id = info.row.original.id;
-            const isPosted = info.row.original.isPosted as boolean;
             return h('div', { class: 'flex gap-4' }, [
-                h(
-                    'a',
-                    {
-                        href: journalEntry.edit(id).url,
-                        class: 'text-cyan-400 hover:underline',
-                    },
-                    'Edit',
-                ),
-                // Post action
-                h(
-                    'button',
-                    {
-                        type: 'button',
-                        class: 'text-emerald-700 hover:text-emerald-900 disabled:text-gray-400',
-                        disabled: isPosted,
-                        onClick: () => {
-                            if (isPosted) return;
-                            if (!confirm('Post this journal entry?')) return;
-                            router.post(
-                                journalEntry.post(id).url,
-                                {},
-                                {
-                                    preserveScroll: true,
-                                },
-                            );
-                        },
-                    },
-                    'Post',
-                ),
-                // Delete action
+                !info.row.original.isPosted
+                    ? h(
+                          'a',
+                          {
+                              href: journalEntry.edit(id).url,
+                              class: 'text-cyan-400 hover:underline',
+                          },
+                          'Edit',
+                      )
+                    : null,
+                !info.row.original.isPosted
+                    ? h(
+                          'button',
+                          {
+                              type: 'button',
+                              class: 'text-cyan-600 hover:text-cyan-800',
+                              onClick: () => postJournal(id),
+                          },
+                          'Post',
+                      )
+                    : null,
                 h(
                     'button',
                     {
                         type: 'button',
                         class: 'text-red-600 hover:text-red-800',
-                        onClick: () => {
-                            if (!confirm('Delete this journal entry?')) return;
-                            router.delete(journalEntry.destroy(id).url, {
-                                preserveScroll: true,
-                            });
-                        },
+                        onClick: () => deleteJournal(id),
                     },
                     'Delete',
                 ),
@@ -183,6 +182,27 @@ const tableData = useVueTable({
     columns: columns,
     getCoreRowModel: getCoreRowModel(),
 });
+
+function postJournal(id: number) {
+    modalPost.value?.open('Are you sure you want to post this journal?', () => {
+        router.post(
+            journalEntry.post(id).url,
+            {},
+            {
+                preserveScroll: true,
+            },
+        );
+    });
+}
+
+function deleteJournal(id: number) {
+    modalDelete.value?.open(
+        'Are you sure you want to delete this journal:?',
+        () => {
+            router.delete(journalEntry.destroy(id).url);
+        },
+    );
+}
 </script>
 
 <template>
@@ -324,5 +344,7 @@ const tableData = useVueTable({
                 </div>
             </div>
         </div>
+        <ModalDelete ref="modalDelete" />
+        <ModalPost ref="modalPost" />
     </AppLayout>
 </template>

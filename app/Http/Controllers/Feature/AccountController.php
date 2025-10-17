@@ -21,9 +21,11 @@ class AccountController extends Controller
                 filter_var($request->active, FILTER_VALIDATE_BOOLEAN) ? $q->active() : $q->where('is_active', false)
             )
 
-            ->orderBy('code')
+            ->orderBy('id')
             ->paginate(10)
             ->withQueryString();
+
+        // dd($accounts->toArray());
 
         return Inertia::render('account/Index', [
             'accounts' => $accounts,
@@ -94,16 +96,6 @@ class AccountController extends Controller
         $account->update($mappedData);
 
         return redirect()->route('accounts.index')->with('success', "Akun {$account->code} - {$account->name} berhasil diupdate.");
-    }
-
-    public function show(Account $account)
-    {
-        return Inertia::render('accounts/Show', [
-            'account' => $account->load(
-                'postedJournalLines.entry',
-                'postedJournalLines.account'
-            ),
-        ]);
     }
 
 

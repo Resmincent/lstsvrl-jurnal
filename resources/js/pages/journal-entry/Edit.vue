@@ -39,13 +39,6 @@ const form = useForm<JournalEntryUpdatePayload>({
     })),
 });
 
-import { onMounted } from 'vue';
-
-onMounted(() => {
-    console.log('ENTRY RAW:', JSON.parse(JSON.stringify(props.entry)));
-    console.log('ENTRY LINES LENGTH:', props.entry.lines?.length);
-});
-
 // ===== Helpers =====
 const addLine = (pos: LinePosition = 'debit') => {
     form.lines.push({

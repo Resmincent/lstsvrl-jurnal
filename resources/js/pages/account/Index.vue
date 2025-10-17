@@ -31,6 +31,7 @@ const items = computed(() =>
         id: item.id,
         name: item.name,
         type: item.type,
+        code: item.code,
         balanceType: item.balance_type,
         isActive: item.is_active,
         created_at: item.created_at || '-',
@@ -92,6 +93,10 @@ const columns = [
         header: 'ID',
         cell: (info) => info.getValue(),
     }),
+    columnHelper.accessor('code', {
+        header: 'Code',
+        cell: (info) => info.getValue(),
+    }),
     columnHelper.accessor('name', {
         header: 'Name',
         cell: (info) => info.getValue(),
@@ -141,14 +146,6 @@ const columns = [
                     'Edit',
                 ),
                 h(
-                    'a',
-                    {
-                        href: account.show(id).url,
-                        class: 'text-cyan-700 hover:underline',
-                    },
-                    'View',
-                ),
-                h(
                     'button',
                     {
                         type: 'button',
@@ -177,7 +174,7 @@ const tableData = useVueTable({
             <div class="space-y-4 p-6">
                 <div class="flex flex-wrap items-end justify-between gap-4">
                     <div class="flex flex-wrap items-end gap-3">
-                        <!-- Type dropdown -->
+                        <!-- Filter Type -->
                         <div class="flex flex-col">
                             <label
                                 class="mb-1 text-xs font-medium text-gray-600"
@@ -198,7 +195,7 @@ const tableData = useVueTable({
                             </select>
                         </div>
 
-                        <!-- Active dropdown -->
+                        <!-- Filter Status -->
                         <div class="flex flex-col">
                             <label
                                 class="mb-1 text-xs font-medium text-gray-600"
@@ -263,7 +260,7 @@ const tableData = useVueTable({
                                 v-if="tableData.getRowModel().rows.length === 0"
                             >
                                 <td
-                                    colspan="6"
+                                    colspan="8"
                                     class="border-b px-4 py-8 text-center text-sm text-gray-500"
                                 >
                                     No account data found

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class JournalEntry extends Model
 {
@@ -96,5 +97,28 @@ class JournalEntry extends Model
         $this->is_posted = true;
         $this->posted_at = now();
         $this->save();
+    }
+
+    public static function generateNumber(?Carbon $now = null): string
+    {
+        $now ??= Carbon::now();
+        $year   = $now->format('Y');
+        $month   = $now->format('m');
+        $day   = $now->format('d');
+
+        $prefix = "JRN{$year}{$month}{$day}";
+
+        // cari number terakhir tahun ini
+        $lastNumber = static::where('number', 'like', $prefix . '%')
+            ->orderByDesc('number')
+            ->value('number');
+
+        $seq = 1;
+        if ($lastNumber) {
+            $lastSeq = (int) substr($lastNumber, -6);
+            $seq = $lastSeq + 1;
+        }
+
+        return $prefix . str_pad((string) $seq, 6, '0', STR_PAD_LEFT);
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Requests\EntryJournals\UpdateJournalEntryRequest;
 use App\Models\Account;
 use App\Models\JournalEntry;
 use App\Models\JournalLine;
+use App\Services\JournalPostingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -19,6 +20,7 @@ class JournalEntryController extends Controller
     {
 
         $entries = JournalEntry::query()->with('lines.account')
+            // Filter number, memo dan date
             ->when(
                 $request->filled('q'),
                 fn($q) =>
@@ -48,11 +50,14 @@ class JournalEntryController extends Controller
 
     public function create()
     {
-        $accounts = Account::query()->active()->get(['id', 'name']);
+        $accounts = Account::query()->active()->get(['id', 'name', 'code']);
+
+
 
         return Inertia::render('journal-entry/Create', [
             'entry' => new JournalEntry(),
             'accounts' => $accounts,
+            'number' => JournalEntry::generateNumber(),
         ]);
     }
 
@@ -62,7 +67,7 @@ class JournalEntryController extends Controller
 
         $entry = DB::transaction(function () use ($data) {
             $entry = JournalEntry::create([
-                'number' => $data['number'],
+                'number' => $data['number'] ?: JournalEntry::generateNumber(),
                 'date' => $data['date'],
                 'memo' => trim($data['memo'] ?? ''),
                 'is_posted' => false,
@@ -171,23 +176,19 @@ class JournalEntryController extends Controller
         return redirect()->route('journal-entries.index')->with('success', "Jurnal entry {$entry->number} berhasil dihapus.");
     }
 
-    public function post(JournalEntry $entry)
+    public function post(JournalEntry $entry, JournalPostingService $servicePosting)
     {
-        if ($resp = $this->jurnalIsPosted($entry)) {
-            return $resp;
+        try {
+            $servicePosting->post($entry);
+        } catch (\Throwable $e) {
+            return redirect()->route('journal-entries.index')
+                ->with('error', $e->getMessage());
         }
 
-        if ($resp = $this->jurnalNotBalanced($entry)) {
-            return $resp;
-        }
-
-        $entry->update([
-            'is_posted' => true,
-            'posted_at' => now(),
-        ]);
-
-        return redirect()->route('journal-entries.index')->with('success', "Jurnal entry {$entry->number} berhasil di posting.");
+        return redirect()->route('journal-entries.index')
+            ->with('success', "Jurnal entry {$entry->number} berhasil di posting.");
     }
+
 
     /**
      * Pengecekan jika jurnal sudah di posting

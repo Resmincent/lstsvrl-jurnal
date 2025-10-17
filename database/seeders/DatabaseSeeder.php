@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -18,6 +17,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin User',
             'email' => 'admin@superadmin.com',
             'password' => Hash::make('@admin123'),
+        ]);
+
+        $this->call([
+            AccountSeeder::class,
         ]);
     }
 }
