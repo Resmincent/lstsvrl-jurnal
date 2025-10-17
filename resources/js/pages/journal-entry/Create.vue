@@ -1,19 +1,15 @@
 <script setup lang="ts">
-import journalEntry from '@/routes/journal-entries';
-import { Head, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
-
-// Components & layout
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-
-// Types
+import journalEntry from '@/routes/journal-entries';
 import type { BreadcrumbItem } from '@/types';
 import type { Account } from '@/types/account';
 import type {
     JournalEntryCreatePayload,
     LinePosition,
 } from '@/types/journalEntry';
+import { Head, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Journal Entry', href: journalEntry.index().url },
@@ -26,6 +22,7 @@ const props = defineProps<{
     defaultDate?: string;
 }>();
 
+//
 const form = useForm<JournalEntryCreatePayload>({
     number: props.number ?? '',
     date: props.defaultDate ?? new Date().toISOString().slice(0, 10),
@@ -48,7 +45,7 @@ const form = useForm<JournalEntryCreatePayload>({
     ],
 });
 
-// ===== Helpers =====
+// Untuk menambah baris
 const addLine = (pos: LinePosition = 'debit') => {
     form.lines.push({
         account_id: null as any,

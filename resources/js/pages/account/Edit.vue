@@ -32,7 +32,7 @@ const typeOptions: AccountType[] = [
 const balanceOptions: BalanceType[] = ['debit', 'credit'];
 const toLabel = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-// form state (prefill dari props)
+// form state dan mengambil data dari props
 const form = useForm({
     code: props.account.code ?? '',
     name: props.account.name ?? '',

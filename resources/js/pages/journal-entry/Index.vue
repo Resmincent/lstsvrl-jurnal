@@ -28,6 +28,7 @@ const props = defineProps<{
     filters: JournalFilters;
 }>();
 
+// Menampilkan data pada tabel
 const items = computed(() =>
     props.entries.data.map((e) => ({
         id: e.id,
@@ -40,6 +41,7 @@ const items = computed(() =>
     })),
 );
 
+// Modal delete dan post
 const modalPost = ref<InstanceType<typeof ModalPost> | null>(null);
 const modalDelete = ref<InstanceType<typeof ModalDelete> | null>(null);
 
@@ -52,6 +54,7 @@ const postedOptions = [
     { label: 'Unposted', value: 'false' },
 ];
 
+// Menyimpan filter user
 const filters = reactive<JournalFilters>({
     q: props.filters?.q ?? '',
     posted: toBoolString(props.filters?.posted),
@@ -85,6 +88,7 @@ const resetFilters = () => {
     applyFilters();
 };
 
+// Filter otomatis
 watch(
     () => [filters.q, filters.posted, filters.start_date, filters.end_date],
     applyFilters,
@@ -142,6 +146,7 @@ const columns = [
         cell: (info) => {
             const id = info.row.original.id;
             return h('div', { class: 'flex gap-4' }, [
+                // Pengecekan jika jurnal sudah di post button edit, post dan delete akan di hide
                 !info.row.original.isPosted
                     ? h(
                           'a',

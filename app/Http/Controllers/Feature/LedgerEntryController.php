@@ -15,7 +15,7 @@ class LedgerEntryController extends Controller
 
     public function index()
     {
-        // ---- Helper saldo akun & tipe (tanpa filter tanggal) ----
+
         $normalDebitTypes = ['asset', 'expense'];
 
         $accountBalanceById = function (int $accountId) use ($normalDebitTypes): string {
@@ -27,7 +27,6 @@ class LedgerEntryController extends Controller
             $cr = (string) $q->clone()->sum('credit');
 
             $normalDebit = in_array($acc->type, $normalDebitTypes, true);
-            // saldo positif di sisi normal akun
             return $normalDebit ? bcsub($dr, $cr, 2) : bcsub($cr, $dr, 2);
         };
 

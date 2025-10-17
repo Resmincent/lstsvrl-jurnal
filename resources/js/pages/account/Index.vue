@@ -26,6 +26,7 @@ const props = defineProps<{
     filters: AccountFilters;
 }>();
 
+// Untuk menampilkan data di tabel
 const items = computed(() =>
     props.accounts.data.map((item) => ({
         id: item.id,
@@ -39,6 +40,7 @@ const items = computed(() =>
     })),
 );
 
+// Filter untuk type account
 type AccountType = 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
 
 const toLabel = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -53,6 +55,7 @@ const activeOptions = [
     { label: 'Inactive', value: 'false' },
 ];
 
+// Menyimpan filter user
 const filters = reactive<AccountFilters>({
     type: props.filters?.type ?? undefined,
     active:
@@ -84,6 +87,7 @@ const resetFilters = () => {
     applyFilters();
 };
 
+// Filter otomatis
 watch(() => [filters.type, filters.active], applyFilters);
 
 const columnHelper = createColumnHelper<any>();

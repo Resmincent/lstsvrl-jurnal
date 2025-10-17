@@ -39,7 +39,6 @@ const form = useForm<JournalEntryUpdatePayload>({
     })),
 });
 
-// ===== Helpers =====
 const addLine = (pos: LinePosition = 'debit') => {
     form.lines.push({
         account_id: null as any,
